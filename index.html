@@ -234,8 +234,8 @@ body{font-family:'Inter',sans-serif;color:var(--text);-webkit-font-smoothing:ant
 
   <div class="video-frame">
     <div class="video-wrap" id="vwrap">
-      <video class="vmain" id="vsl" playsinline preload="metadata" poster="poster.jpg?v=4" disablepictureinpicture controlslist="nodownload noplaybackrate noremoteplayback">
-        <source src="vsl.mp4?v=4" type="video/mp4">
+      <video class="vmain" id="vsl" playsinline preload="metadata" poster="poster.jpg?v=5" disablepictureinpicture controlslist="nodownload noplaybackrate noremoteplayback">
+        <source src="vsl.mp4?v=5" type="video/mp4">
         Tu navegador no soporta video HTML5.
       </video>
       <div class="play-ov" id="playOv">
@@ -434,14 +434,6 @@ if(vprog){
   });
 }
 vsl.addEventListener('ended',()=>{ playOv.classList.remove('hidden'); });
-
-// Pre-buffer en segundo plano tras cargar la página → el play arranca al instante.
-// (No bloquea la carga de la página; solo empieza a bufferear cuando ya está todo listo.)
-window.addEventListener('load', function(){
-  setTimeout(function(){
-    if(!vStarted){ try{ vsl.preload='auto'; vsl.load(); }catch(e){} }
-  }, 1200);
-});
 
 // ── "Pruébalo ahora": desplegar formulario ──
 function openForm(){
