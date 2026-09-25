@@ -388,11 +388,18 @@ const vwrap=document.getElementById('vwrap');
 const vprog=document.getElementById('vprog');
 const vprogFill=document.getElementById('vprogFill');
 let vStarted=false;
-// La barra avanza rápido al inicio y más lento hacia el final (ease-out), pero SIEMPRE visible
-const PROG_POW=1.8;
-function easeOutP(p){return 1-Math.pow(1-p,PROG_POW);}
+// Barra de 2 tramos: llena ~45% en el primer minuto (arranque rápido) y luego
+// avanza LINEAL y siempre visible hasta el final (nunca se congela).
+const KNEE_SEC=60, KNEE_PCT=0.45;
+function barPct(t,dur){
+  if(!dur||dur<=0) return 0;
+  if(dur<=KNEE_SEC) return Math.min(t/dur,1);
+  if(t<=KNEE_SEC){ var x=Math.min(t/KNEE_SEC,1); return KNEE_PCT*(1-Math.pow(1-x,2)); }
+  var rem=Math.min((t-KNEE_SEC)/(dur-KNEE_SEC),1);
+  return KNEE_PCT+(1-KNEE_PCT)*rem;
+}
 function drawProg(){
-  if(vsl.duration){ vprogFill.style.width=(easeOutP(Math.min(vsl.currentTime/vsl.duration,1))*100)+'%'; }
+  if(vsl.duration){ vprogFill.style.width=(barPct(vsl.currentTime,vsl.duration)*100)+'%'; }
 }
 function updateProg(){ drawProg(); if(!vsl.paused) requestAnimationFrame(updateProg); }
 // Respaldos para que la barra nunca se quede quieta:
@@ -419,8 +426,11 @@ if(vprog){
     if(!vsl.duration) return;
     const r=vprog.getBoundingClientRect();
     const d=Math.min(Math.max((e.clientX-r.left)/r.width,0),1);
-    const t=(1-Math.pow(1-d,1/PROG_POW))*vsl.duration; // invierte el ease-out
-    if(t<=vsl.currentTime){ vsl.currentTime=t; }
+    const dur=vsl.duration; let t;
+    if(dur<=KNEE_SEC){ t=d*dur; }
+    else if(d<=KNEE_PCT){ t=KNEE_SEC*(1-Math.sqrt(1-d/KNEE_PCT)); }
+    else{ t=KNEE_SEC+(dur-KNEE_SEC)*((d-KNEE_PCT)/(1-KNEE_PCT)); }
+    if(t<=vsl.currentTime){ vsl.currentTime=t; } // solo devolver, nunca adelantar
   });
 }
 vsl.addEventListener('ended',()=>{ playOv.classList.remove('hidden'); });
