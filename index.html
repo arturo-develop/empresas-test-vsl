@@ -388,13 +388,16 @@ const vwrap=document.getElementById('vwrap');
 const vprog=document.getElementById('vprog');
 const vprogFill=document.getElementById('vprogFill');
 let vStarted=false;
-// La barra avanza MUY rápido al inicio y lento hacia el final (ease-out fuerte)
-const PROG_POW=3.4;
+// La barra avanza rápido al inicio y más lento hacia el final (ease-out), pero SIEMPRE visible
+const PROG_POW=1.8;
 function easeOutP(p){return 1-Math.pow(1-p,PROG_POW);}
-function updateProg(){
-  if(vsl.duration){vprogFill.style.width=(easeOutP(vsl.currentTime/vsl.duration)*100)+'%';}
-  if(!vsl.paused) requestAnimationFrame(updateProg);
+function drawProg(){
+  if(vsl.duration){ vprogFill.style.width=(easeOutP(Math.min(vsl.currentTime/vsl.duration,1))*100)+'%'; }
 }
+function updateProg(){ drawProg(); if(!vsl.paused) requestAnimationFrame(updateProg); }
+// Respaldos para que la barra nunca se quede quieta:
+vsl.addEventListener('timeupdate', drawProg);
+vsl.addEventListener('loadedmetadata', drawProg);
 function playVSL(){
   vsl.muted=false;
   vsl.play();
