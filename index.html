@@ -7,6 +7,28 @@
 <title>Acris IA | Convierte tus leads en clientes — en segundos</title>
 <link rel="icon" type="image/svg+xml" href="favicon.svg">
 <link rel="apple-touch-icon" href="favicon.svg">
+<!-- Meta Pixel · Acris Digital -->
+<script>
+!function(f,b,e,v,n,t,s){if(f.fbq)return;n=f.fbq=function(){n.callMethod?
+n.callMethod.apply(n,arguments):n.queue.push(arguments)};if(!f._fbq)f._fbq=n;
+n.push=n;n.loaded=!0;n.version='2.0';n.queue=[];t=b.createElement(e);t.async=!0;
+t.src=v;s=b.getElementsByTagName(e)[0];s.parentNode.insertBefore(t,s)}(window,
+document,'script','https://connect.facebook.net/en_US/fbevents.js');
+fbq('init', '1144666576241866');
+fbq('track', 'PageView');
+</script>
+<!-- Captura de atribución (UTM / fbclid) -->
+<script>
+(function(){
+  var claves = ['utm_source','utm_medium','utm_campaign','utm_content','utm_term','fbclid'];
+  var p = new URLSearchParams(location.search);
+  var guardado = {};
+  try { guardado = JSON.parse(sessionStorage.getItem('acris_atrib') || '{}'); } catch(e){}
+  claves.forEach(function(k){ if (p.get(k)) guardado[k] = p.get(k); });
+  try { sessionStorage.setItem('acris_atrib', JSON.stringify(guardado)); } catch(e){}
+  window.acrisAtrib = guardado;
+})();
+</script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700;800&family=Inter:wght@400;500&display=swap" rel="stylesheet">
 <style>
@@ -175,6 +197,7 @@ body{font-family:'Inter',sans-serif;color:var(--text);-webkit-font-smoothing:ant
 </style>
 </head>
 <body>
+<noscript><img height="1" width="1" style="display:none" src="https://www.facebook.com/tr?id=1144666576241866&ev=PageView&noscript=1"/></noscript>
 
 <!-- FONDO TECNOLÓGICO -->
 <div class="bg-tech" aria-hidden="true">
@@ -441,12 +464,17 @@ function submitGHLForm(event){
   const phoneNumber=phoneInput.value.replace(/\s/g,'');
   phoneInput.value=phoneCode+phoneNumber;
 
-  const formData=new FormData(form);
-  console.log('📤 Enviando a GHL:', Object.fromEntries(formData));
+  const params=new URLSearchParams(new FormData(form));
+  const atrib=window.acrisAtrib||{};
+  Object.keys(atrib).forEach(function(k){ params.append(k, atrib[k]); });
+  params.append('landing', location.hostname);
+  console.log('📤 Enviando a GHL:', Object.fromEntries(params));
+
+  if(window.fbq) fbq('track','Lead');
 
   fetch('https://services.leadconnectorhq.com/hooks/dOdKg7lRbJNOawBVXaBc/webhook-trigger/d6db2a66-1493-4229-85f9-ceb8360d6719',{
     method:'POST',
-    body:new URLSearchParams(formData)
+    body:params
   })
   .then(res=>{console.log('✅ GHL status:',res.status);return res.json();})
   .then(data=>{console.log('✅ GHL data:',data);showSuccessPopup();form.reset();})
@@ -520,6 +548,21 @@ if(stepsRow){
   if(sp) sp.addEventListener('click',()=>nudge(-1));
   if(sn) sn.addEventListener('click',()=>nudge(1));
 }
+</script>
+
+<!-- Meta Pixel: avisar cuando ven +50% de la VSL (evento VSL50) -->
+<script>
+(function(){
+  var avisado = false;
+  document.querySelectorAll('video').forEach(function(v){
+    v.addEventListener('timeupdate', function(){
+      if (!avisado && v.duration && v.currentTime / v.duration >= 0.5) {
+        avisado = true;
+        if (window.fbq) fbq('trackCustom', 'VSL50');
+      }
+    });
+  });
+})();
 </script>
 
 </body>
